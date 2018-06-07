@@ -1,37 +1,63 @@
 package lambda.part3.exercise;
 
-import lambda.data.Employee;
-import lambda.data.JobHistoryEntry;
-import lambda.data.Person;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
+import java.util.function.Consumer;
 import java.util.function.Function;
-
-import static org.junit.Assert.assertEquals;
+import lambda.data.Employee;
+import lambda.data.JobHistoryEntry;
+import lambda.data.Person;
+import org.junit.Test;
 
 @SuppressWarnings({"unused", "ConstantConditions"})
 public class Exercise4 {
 
     private static class LazyCollectionHelper<T, R> {
 
+        private List<T> source;
+        private Queue<R> currentResultQueue;
+        private Consumer<T> convert;
+
+        private LazyCollectionHelper(List<T> source, Queue<R> currentResultQueue,
+                Consumer<T> consumer) {
+            this.source = source;
+            this.currentResultQueue = currentResultQueue;
+            this.convert = consumer;
+        }
+
         public static <T> LazyCollectionHelper<T, T> from(List<T> list) {
-            throw new UnsupportedOperationException();
+            Queue<T> nextResultQueue = new LinkedList<>();
+            return new LazyCollectionHelper<>(list, nextResultQueue, nextResultQueue::offer);
         }
 
         public <U> LazyCollectionHelper<T, U> flatMap(Function<R, List<U>> flatMapping) {
-            throw new UnsupportedOperationException();
+            Queue<U> nextResultQueue = new LinkedList<>();
+            return new LazyCollectionHelper<>(source, nextResultQueue, convert.andThen(r -> {
+                while (!currentResultQueue.isEmpty()) {
+                    flatMapping.apply(currentResultQueue.poll())
+                            .forEach(nextResultQueue::offer);
+                }
+            }));
         }
 
         public <U> LazyCollectionHelper<T, U> map(Function<R, U> mapping) {
-            throw new UnsupportedOperationException();
+            Queue<U> nextResultQueue = new LinkedList<>();
+            return new LazyCollectionHelper<>(source, nextResultQueue, convert.andThen(r -> {
+                while (!currentResultQueue.isEmpty()) {
+                    nextResultQueue.offer(mapping.apply(currentResultQueue.poll()));
+                }
+            }));
         }
 
         public List<R> force() {
-            throw new UnsupportedOperationException();
+            source.forEach(convert);
+            return new ArrayList<>(currentResultQueue);
         }
     }
 
@@ -39,17 +65,36 @@ public class Exercise4 {
     public void mapEmployeesToCodesOfLetterTheirPositionsUsingLazyFlatMapHelper() {
         List<Employee> employees = getEmployees();
 
-        List<Integer> codes = null;
-        // TODO              LazyCollectionHelper.from(employees)
-        // TODO                                  .flatMap(Employee -> JobHistoryEntry)
-        // TODO                                  .map(JobHistoryEntry -> String(position))
-        // TODO                                  .flatMap(String -> Character(letter))
-        // TODO                                  .map(Character -> Integer(code letter)
-        // TODO                                  .force();
-        assertEquals(calcCodes("dev", "dev", "tester", "dev", "dev", "QA", "QA", "dev", "tester", "tester", "QA", "QA", "QA", "dev"), codes);
+        // List<Integer> codes = LazyCollectionHelper.from(employees)
+        //                                  .flatMap(Employee -> JobHistoryEntry)
+        //                                  .map(JobHistoryEntry -> String(position))
+        //                                  .flatMap(String -> Character(letter))
+        //                                  .map(Character -> Integer(code letter)
+        //                                  .force();
+        List<Integer> codes = LazyCollectionHelper.from(employees)
+                .flatMap(Employee::getJobHistory)
+                .map(JobHistoryEntry::getPosition)
+                .flatMap(Exercise4::extractCharacters)
+                .map(Exercise4::extractCode)
+                .force();
+        assertEquals(calcCodes("dev", "dev", "tester", "dev", "dev", "QA", "QA", "dev", "tester",
+                "tester", "QA", "QA", "QA", "dev"), codes);
     }
 
-    private static List<Integer> calcCodes(String...strings) {
+    private static List<Character> extractCharacters(String string) {
+        List<Character> characters = new ArrayList<>();
+        for (char character : string.toCharArray()) {
+            characters.add(character);
+        }
+
+        return characters;
+    }
+
+    private static Integer extractCode(Character character) {
+        return (int) character;
+    }
+
+    private static List<Integer> calcCodes(String... strings) {
         List<Integer> codes = new ArrayList<>();
         for (String string : strings) {
             for (char letter : string.toCharArray()) {
