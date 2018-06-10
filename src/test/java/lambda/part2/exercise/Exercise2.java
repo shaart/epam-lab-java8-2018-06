@@ -10,6 +10,13 @@ import org.junit.Test;
 @SuppressWarnings({"ConstantConditions", "unused"})
 public class Exercise2 {
 
+    private Predicate<Person> getPersonHasEmptyFirstNamePredicate(){
+        return person -> person.getFirstName() == null || person.getFirstName().isEmpty();
+    }
+    private Predicate<Person> getPersonHasEmptyLastNamePredicate(){
+        return person -> person.getLastName() == null || person.getLastName().isEmpty();
+    }
+
     @Test
     public void personHasNotEmptyLastNameAndFirstName() {
         // Предикат Person -> boolean, проверяющий что имя и фамилия человека не пусты
@@ -40,10 +47,8 @@ public class Exercise2 {
 
     @Test
     public void personHasNotEmptyLastNameAndFirstNameUsingLogicalOperators() {
-        Predicate<Person> personHasEmptyFirstName = person -> person.getFirstName() == null
-                || person.getFirstName().isEmpty();
-        Predicate<Person> personHasEmptyLastName = person -> person.getLastName() == null
-                || person.getLastName().isEmpty();
+        Predicate<Person> personHasEmptyFirstName = getPersonHasEmptyFirstNamePredicate();
+        Predicate<Person> personHasEmptyLastName = getPersonHasEmptyLastNamePredicate();
 
         Predicate<Person> personHasNotEmptyFirstName =
                 negateUsingLogicalOperator(personHasEmptyFirstName);
@@ -77,10 +82,8 @@ public class Exercise2 {
 
     @Test
     public void personHasNotEmptyLastNameAndFirstNameUsingGenericPredicates() {
-        Predicate<Person> personHasEmptyFirstName = person -> person.getFirstName() == null
-                || person.getFirstName().isEmpty();
-        Predicate<Person> personHasEmptyLastName = person -> person.getLastName() == null
-                || person.getLastName().isEmpty();
+        Predicate<Person> personHasEmptyFirstName = getPersonHasEmptyFirstNamePredicate();
+        Predicate<Person> personHasEmptyLastName = getPersonHasEmptyLastNamePredicate();
 
         Predicate<Person> personHasNotEmptyFirstName = negate(personHasEmptyFirstName);
         Predicate<Person> personHasNotEmptyLastName = negate(personHasEmptyLastName);
@@ -98,10 +101,8 @@ public class Exercise2 {
 
     @Test
     public void personHasNotEmptyLastNameAndFirstNameUsingStandardMethods() {
-        Predicate<Person> personHasEmptyFirstName = person -> person.getFirstName() == null
-                || person.getFirstName().isEmpty();
-        Predicate<Person> personHasEmptyLastName = person -> person.getLastName() == null
-                || person.getLastName().isEmpty();
+        Predicate<Person> personHasEmptyFirstName = getPersonHasEmptyFirstNamePredicate();
+        Predicate<Person> personHasEmptyLastName = getPersonHasEmptyLastNamePredicate();
 
         // Использовать Predicate.negate
         Predicate<Person> personHasNotEmptyFirstName = personHasEmptyFirstName.negate();
