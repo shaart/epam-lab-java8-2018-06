@@ -1,15 +1,20 @@
 package streams.part1.exercise;
 
+import static org.junit.Assert.assertEquals;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.function.ToDoubleFunction;
+import java.util.function.ToIntFunction;
+import java.util.stream.Stream;
 import lambda.data.Employee;
 import lambda.data.JobHistoryEntry;
 import lambda.data.Person;
 import org.junit.Test;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
 
 @SuppressWarnings({"ConstantConditions", "unused"})
 public class Exercise2 {
@@ -18,16 +23,28 @@ public class Exercise2 {
     public void calcAverageAgeOfEmployees() {
         List<Employee> employees = getEmployees();
 
-        Double expected = null;
+        Double expected = employees.stream()
+                .map(Employee::getPerson)
+                .map(Person::getAge)
+                .mapToDouble(Double::valueOf)
+                .average()
+                .orElseThrow(NoSuchElementException::new);
 
         assertEquals(33.66, expected, 0.1);
+    }
+
+    private static int compareForLongestName(Person leftPerson, Person rightPerson) {
+        return rightPerson.getFullName().compareTo(leftPerson.getFullName());
     }
 
     @Test
     public void findPersonWithLongestFullName() {
         List<Employee> employees = getEmployees();
 
-        Person expected = null;
+        Person expected = employees.stream()
+                .map(Employee::getPerson)
+                .max(Exercise2::compareForLongestName)
+                .orElseThrow(NoSuchElementException::new);
 
         assertEquals(expected, employees.get(1).getPerson());
     }
@@ -36,21 +53,40 @@ public class Exercise2 {
     public void findEmployeeWithMaximumDurationAtOnePosition() {
         List<Employee> employees = getEmployees();
 
-        Employee expected = null;
+        ToIntFunction<Employee> getMaxDuration = employee -> employee.getJobHistory().stream()
+                .mapToInt(JobHistoryEntry::getDuration)
+                .max()
+                .orElseThrow(NoSuchElementException::new);
+
+        Employee expected = employees.stream()
+                .max(Comparator.comparingInt(getMaxDuration))
+                .orElseThrow(NoSuchElementException::new);
 
         assertEquals(expected, employees.get(4));
     }
 
     /**
-     * Вычислить общую сумму заработной платы для сотрудников.
-     * Базовая ставка каждого сотрудника составляет 75_000.
-     * Если на текущей позиции (последняя в списке) он работает больше трех лет - ставка увеличивается на 20%
+     * Вычислить общую сумму заработной платы для сотрудников. Базовая ставка каждого сотрудника
+     * составляет 75_000. Если на текущей позиции (последняя в списке) он работает больше трех лет -
+     * ставка увеличивается на 20%
      */
     @Test
     public void calcTotalSalaryWithCoefficientWorkExperience() {
         List<Employee> employees = getEmployees();
 
-        Double expected = null;
+        ToDoubleFunction<Stream<JobHistoryEntry>> calculateEmployeeSalary = durationStream -> {
+            int durationOfCurrentPosition = durationStream
+                    .mapToInt(JobHistoryEntry::getDuration)
+                    .reduce(0, (left, right) -> right);
+            return 75_000 * (durationOfCurrentPosition > 3 ? 1.2 : 1);
+        };
+
+        Double expected = employees.stream()
+                .map(Employee::getJobHistory)
+                .map(Collection::stream)
+                .mapToDouble(calculateEmployeeSalary)
+                .reduce(Double::sum)
+                .orElseThrow(NoSuchElementException::new);
 
         assertEquals(465000.0, expected, 0.001);
     }
