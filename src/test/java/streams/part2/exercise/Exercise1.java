@@ -34,8 +34,7 @@ public class Exercise1 {
                 .mapToLong(JobHistoryEntry::getDuration)
                 .sum();
 
-        // 18? I've got 19
-        assertEquals(18, hours.longValue());
+        assertEquals(19, hours.longValue());
     }
 
     @Test
