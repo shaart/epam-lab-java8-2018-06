@@ -33,8 +33,10 @@ public class Exercise2 {
         assertEquals(33.66, expected, 0.1);
     }
 
-    private static int compareForLongestName(Person leftPerson, Person rightPerson) {
-        return rightPerson.getFullName().compareTo(leftPerson.getFullName());
+    private static int compareByNameLength(Person leftPerson, Person rightPerson) {
+        return Integer.compare(
+                leftPerson.getFullName().length(),
+                rightPerson.getFullName().length());
     }
 
     @Test
@@ -43,7 +45,7 @@ public class Exercise2 {
 
         Person expected = employees.stream()
                 .map(Employee::getPerson)
-                .max(Exercise2::compareForLongestName)
+                .max(Exercise2::compareByNameLength)
                 .orElseThrow(NoSuchElementException::new);
 
         assertEquals(expected, employees.get(1).getPerson());
