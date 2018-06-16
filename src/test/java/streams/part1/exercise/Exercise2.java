@@ -25,18 +25,11 @@ public class Exercise2 {
 
         Double expected = employees.stream()
                 .map(Employee::getPerson)
-                .map(Person::getAge)
-                .mapToDouble(Double::valueOf)
+                .mapToInt(Person::getAge)
                 .average()
                 .orElseThrow(NoSuchElementException::new);
 
         assertEquals(33.66, expected, 0.1);
-    }
-
-    private static int compareByNameLength(Person leftPerson, Person rightPerson) {
-        return Integer.compare(
-                leftPerson.getFullName().length(),
-                rightPerson.getFullName().length());
     }
 
     @Test
@@ -45,7 +38,7 @@ public class Exercise2 {
 
         Person expected = employees.stream()
                 .map(Employee::getPerson)
-                .max(Exercise2::compareByNameLength)
+                .max(Comparator.comparing(person -> person.getFullName().length()))
                 .orElseThrow(NoSuchElementException::new);
 
         assertEquals(expected, employees.get(1).getPerson());
@@ -76,19 +69,25 @@ public class Exercise2 {
     public void calcTotalSalaryWithCoefficientWorkExperience() {
         List<Employee> employees = getEmployees();
 
+        final int BASE_SALARY = 75_000;
+        final double DEFAULT_COEF = 1.0;
+        final int YEARS_FOR_BONUS = 3;
+        final double BONUS_COEF = 1.2;
+
         ToDoubleFunction<Stream<JobHistoryEntry>> calculateEmployeeSalary = durationStream -> {
             int durationOfCurrentPosition = durationStream
                     .mapToInt(JobHistoryEntry::getDuration)
                     .reduce(0, (left, right) -> right);
-            return 75_000 * (durationOfCurrentPosition > 3 ? 1.2 : 1);
+
+            return BASE_SALARY *
+                    (durationOfCurrentPosition > YEARS_FOR_BONUS ? BONUS_COEF : DEFAULT_COEF);
         };
 
         Double expected = employees.stream()
                 .map(Employee::getJobHistory)
                 .map(Collection::stream)
                 .mapToDouble(calculateEmployeeSalary)
-                .reduce(Double::sum)
-                .orElseThrow(NoSuchElementException::new);
+                .sum();
 
         assertEquals(465000.0, expected, 0.001);
     }
