@@ -85,8 +85,7 @@ public class Exercise1 {
         // Реализация
         Integer minimalAge = employees.stream()
                 .map(Employee::getPerson)
-                .map(Person::getAge)
-                .mapToInt(Integer::intValue)
+                .mapToInt(Person::getAge)
                 .min()
                 .orElseThrow(NoSuchElementException::new);
 
