@@ -1,11 +1,16 @@
 package streams.part2.exercise;
 
-import org.junit.Test;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
-
-import static org.junit.Assert.assertEquals;
+import java.util.Map.Entry;
+import java.util.function.Function;
+import org.junit.Test;
 
 public class Exercise4 {
 
@@ -18,7 +23,30 @@ public class Exercise4 {
      * @return Список отобранных слов (в нижнем регистре).
      */
     private List<String> getFrequentlyOccurringWords(String text, int numberWords) {
-        throw new UnsupportedOperationException();
+        Function<Entry<String, Integer>, String> getWord = Entry::getKey;
+        Comparator<Entry<String, Integer>> descendingByCount =
+                (o1, o2) -> Integer.compare(o2.getValue(), o1.getValue());
+        Comparator<Entry<String, Integer>> byAlphabet = Comparator.comparing(getWord);
+
+        final String ONE_OR_MORE_SPACES_REGEX = "\\s+";
+        final String NON_SMALL_LETTER_REGEX = "[^а-яёa-z]";
+        final String EMPTY = "";
+        
+        return Arrays
+                .stream(text.split(ONE_OR_MORE_SPACES_REGEX))
+                .map(String::toLowerCase)
+                .map(word -> word.replaceAll(NON_SMALL_LETTER_REGEX, EMPTY))
+                .collect(toMap(
+                        identity(),
+                        word -> 1,
+                        Integer::sum))
+                .entrySet()
+                .stream()
+                .sorted(descendingByCount
+                        .thenComparing(byAlphabet))
+                .limit(numberWords)
+                .map(getWord)
+                .collect(toList());
     }
 
     @Test
