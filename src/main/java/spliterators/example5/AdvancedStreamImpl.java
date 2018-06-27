@@ -20,7 +20,9 @@ public class AdvancedStreamImpl<T> implements AdvancedStream<T> {
 
     @Override
     public <U> AdvancedStream<Pair<T, U>> zip(Stream<U> another) {
-        throw new UnsupportedOperationException();
+        return new AdvancedStreamImpl<>(StreamSupport.stream(
+                new ZipSpliterator<>(original.spliterator(), another.spliterator()),
+                original.isParallel()));
     }
 
     // Delegate methods
