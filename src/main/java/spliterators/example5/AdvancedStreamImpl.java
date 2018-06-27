@@ -1,8 +1,6 @@
 package spliterators.example5;
 
 import org.jetbrains.annotations.NotNull;
-import spliterators.example4.IndexedValue;
-import spliterators.example4.Pair;
 
 import java.util.Comparator;
 import java.util.Iterator;
@@ -21,7 +19,11 @@ public class AdvancedStreamImpl<T> implements AdvancedStream<T> {
 
     @Override
     public AdvancedStream<T> takeWhile(Predicate<? super T> predicate) {
-        throw new UnsupportedOperationException();
+        return new AdvancedStreamImpl<>(StreamSupport.stream(
+                new TakeWhileSpliterator<>(
+                        original.spliterator(),
+                        predicate),
+                false));
     }
 
     // Delegate methods
