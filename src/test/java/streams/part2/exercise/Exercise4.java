@@ -1,8 +1,9 @@
 package streams.part2.exercise;
 
 import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.counting;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
@@ -24,10 +25,10 @@ public class Exercise4 {
      * @return Список отобранных слов (в нижнем регистре).
      */
     private List<String> getFrequentlyOccurringWords(String text, int numberWords) {
-        Function<Entry<String, Integer>, String> getWord = Entry::getKey;
-        Comparator<Entry<String, Integer>> descendingByCount =
-                (o1, o2) -> Integer.compare(o2.getValue(), o1.getValue());
-        Comparator<Entry<String, Integer>> byAlphabet = Comparator.comparing(getWord);
+        Function<Entry<String, Long>, String> getWord = Entry::getKey;
+        Comparator<Entry<String, Long>> descendingByCount =
+                (o1, o2) -> Long.compare(o2.getValue(), o1.getValue());
+        Comparator<Entry<String, Long>> byAlphabet = Comparator.comparing(getWord);
 
         final String ONE_OR_MORE_SPACES_REGEX = "\\s+";
         final String NON_SMALL_LETTER_REGEX = "[^а-яёa-z]";
@@ -37,7 +38,7 @@ public class Exercise4 {
                       .splitAsStream(text)
                       .map(String::toLowerCase)
                       .map(word -> word.replaceAll(NON_SMALL_LETTER_REGEX, EMPTY))
-                      .collect(toMap(identity(), word -> 1, Integer::sum))
+                      .collect(groupingBy(identity(), counting()))
                       .entrySet()
                       .stream()
                       .sorted(descendingByCount.thenComparing(byAlphabet))
