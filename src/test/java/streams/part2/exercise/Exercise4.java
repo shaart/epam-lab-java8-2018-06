@@ -10,6 +10,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import org.junit.Test;
 
 public class Exercise4 {
@@ -31,22 +32,18 @@ public class Exercise4 {
         final String ONE_OR_MORE_SPACES_REGEX = "\\s+";
         final String NON_SMALL_LETTER_REGEX = "[^а-яёa-z]";
         final String EMPTY = "";
-        
-        return Arrays
-                .stream(text.split(ONE_OR_MORE_SPACES_REGEX))
-                .map(String::toLowerCase)
-                .map(word -> word.replaceAll(NON_SMALL_LETTER_REGEX, EMPTY))
-                .collect(toMap(
-                        identity(),
-                        word -> 1,
-                        Integer::sum))
-                .entrySet()
-                .stream()
-                .sorted(descendingByCount
-                        .thenComparing(byAlphabet))
-                .limit(numberWords)
-                .map(getWord)
-                .collect(toList());
+
+        return Pattern.compile(ONE_OR_MORE_SPACES_REGEX)
+                      .splitAsStream(text)
+                      .map(String::toLowerCase)
+                      .map(word -> word.replaceAll(NON_SMALL_LETTER_REGEX, EMPTY))
+                      .collect(toMap(identity(), word -> 1, Integer::sum))
+                      .entrySet()
+                      .stream()
+                      .sorted(descendingByCount.thenComparing(byAlphabet))
+                      .limit(numberWords)
+                      .map(getWord)
+                      .collect(toList());
     }
 
     @Test
