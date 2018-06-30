@@ -1,5 +1,6 @@
 package spliterators.exercise;
 
+import java.util.Collections;
 import org.junit.Test;
 import spliterators.example5.AdvancedStreamImpl;
 
@@ -25,6 +26,19 @@ public class Exercise2 {
                                                                 .collect(Collectors.toList());
 
         assertEquals(result, Arrays.asList("hello", "happy"));
+    }
+
+    @Test
+    public void alloHelloHappyWorldTakeWhileFirstLetterH() {
+        Stream<String> alloHelloHappyWorld = Stream.of("Allo Hello happy world!")
+                                                   .flatMap(Pattern.compile("\\s+")::splitAsStream)
+                                                   .map(String::toLowerCase);
+
+        List<String> resultAlloHelloHappyWorld = new AdvancedStreamImpl<>(alloHelloHappyWorld)
+                .takeWhile(word -> word.startsWith("h"))
+                .collect(Collectors.toList());
+
+        assertEquals(resultAlloHelloHappyWorld, Collections.emptyList());
     }
 
     @Test
